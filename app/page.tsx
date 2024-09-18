@@ -3,8 +3,17 @@
 import { useState } from 'react';
 import axios from 'axios';
 
+// Define types for props
+interface OutputComponentProps {
+  output: string;
+}
+
+interface RecordComponentProps {
+  record: string;
+}
+
 // Output Component
-const OutputComponent = ({ output }) => {
+const OutputComponent: React.FC<OutputComponentProps> = ({ output }) => {
   return (
     <div className="bg-gray-100 border rounded-lg p-4 mt-4">
       <h2 className="text-lg font-bold text-gray-800">Final Output (out.txt)</h2>
@@ -14,7 +23,7 @@ const OutputComponent = ({ output }) => {
 };
 
 // Record Component
-const RecordComponent = ({ record }) => {
+const RecordComponent: React.FC<RecordComponentProps> = ({ record }) => {
   return (
     <div className="bg-gray-100 border rounded-lg p-4 mt-4">
       <h2 className="text-lg font-bold text-gray-800">Record File (record.txt)</h2>
@@ -23,28 +32,29 @@ const RecordComponent = ({ record }) => {
   );
 };
 
+// Main Home Component
 export default function Home() {
-  const [inputFile, setInputFile] = useState(null);
-  const [optabFile, setOptabFile] = useState(null);
-  const [output, setOutput] = useState('');
-  const [record, setRecord] = useState('');
-  const [error, setError] = useState('');
+  const [inputFile, setInputFile] = useState<File | null>(null);
+  const [optabFile, setOptabFile] = useState<File | null>(null);
+  const [output, setOutput] = useState<string>('');
+  const [record, setRecord] = useState<string>('');
+  const [error, setError] = useState<string>('');
 
-  const handleInputFileChange = (e) => setInputFile(e.target.files[0]);
-  const handleOptabFileChange = (e) => setOptabFile(e.target.files[0]);
+  const handleInputFileChange = (e: React.ChangeEvent<HTMLInputElement>) => setInputFile(e.target.files?.[0] || null);
+  const handleOptabFileChange = (e: React.ChangeEvent<HTMLInputElement>) => setOptabFile(e.target.files?.[0] || null);
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const formData = new FormData();
-    formData.append('input_file', inputFile);
-    formData.append('optab_file', optabFile);
+    if (inputFile) formData.append('input_file', inputFile);
+    if (optabFile) formData.append('optab_file', optabFile);
 
     try {
       const res = await axios.post('http://localhost:8000/process-files/', formData, {
         headers: { 'Content-Type': 'multipart/form-data' }
       });
-      setOutput(res.data.output_file);  // Set output.txt content
-      setRecord(res.data.record_file);  // Set record.txt content
+      setOutput(res.data.output_file || '');  // Ensure safe access
+      setRecord(res.data.record_file || '');  // Ensure safe access
       setError('');
     } catch (error) {
       console.error("Error processing files:", error);
