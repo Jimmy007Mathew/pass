@@ -50,7 +50,7 @@ export default function Home() {
     if (optabFile) formData.append('optab_file', optabFile);
 
     try {
-      const res = await axios.post('http://localhost:8000/process-files/', formData, {
+      const res = await axios.post('https://youthful-dust-production.up.railway.app/', formData, {
         headers: { 'Content-Type': 'multipart/form-data' }
       });
       setOutput(res.data.output_file || '');  // Ensure safe access
