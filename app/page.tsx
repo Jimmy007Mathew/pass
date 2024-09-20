@@ -1,9 +1,8 @@
-"use client"; // Ensure this is a client-side component
-
-import { useState } from 'react';
+"use client";
+import { useState, useRef } from 'react';
 import axios from 'axios';
+import Head from 'next/head';
 
-// Define types for props
 interface OutputComponentProps {
   output: string;
 }
@@ -12,99 +11,208 @@ interface RecordComponentProps {
   record: string;
 }
 
-// Output Component
 const OutputComponent: React.FC<OutputComponentProps> = ({ output }) => {
   return (
-    <div className="bg-gray-100 border rounded-lg p-4 mt-4">
-      <h2 className="text-lg font-bold text-gray-800">Final Output (out.txt)</h2>
-      <pre className="whitespace-pre-wrap break-words text-gray-700">{output}</pre>
+    <div className="bg-[#1F2833] border border-[#45A29E] rounded-lg p-4 mt-4 lg:mt-0">
+      <h2 className="text-lg font-bold text-[#66FCF1]">Final Output</h2>
+      <pre className="whitespace-pre-wrap md:sm:text-base text-xs break-words text-[#C5C6C7]">{output}</pre>
     </div>
   );
 };
 
-// Record Component
 const RecordComponent: React.FC<RecordComponentProps> = ({ record }) => {
   return (
-    <div className="bg-gray-100 border rounded-lg p-4 mt-4">
-      <h2 className="text-lg font-bold text-gray-800">Record File (record.txt)</h2>
-      <pre className="whitespace-pre-wrap break-words text-gray-700">{record}</pre>
+    <div className="bg-[#1F2833] border border-[#45A29E] rounded-lg p-4 mt-4">
+      <h2 className="text-lg font-bold text-[#66FCF1]">Record File</h2>
+      <pre className="whitespace-pre-wrap md:sm:text-base text-xs break-words text-[#C5C6C7]">{record}</pre>
     </div>
   );
 };
 
-// Main Home Component
 export default function Home() {
   const [inputFile, setInputFile] = useState<File | null>(null);
   const [optabFile, setOptabFile] = useState<File | null>(null);
+  const [inputContent, setInputContent] = useState<string>('');
+  const [optabContent, setOptabContent] = useState<string>('');
   const [output, setOutput] = useState<string>('');
   const [record, setRecord] = useState<string>('');
   const [error, setError] = useState<string>('');
+  const [warning, setWarning] = useState<string>('');
 
-  const handleInputFileChange = (e: React.ChangeEvent<HTMLInputElement>) => setInputFile(e.target.files?.[0] || null);
-  const handleOptabFileChange = (e: React.ChangeEvent<HTMLInputElement>) => setOptabFile(e.target.files?.[0] || null);
+  const inputFileRef = useRef<HTMLInputElement>(null);  // Ref for input file input
+  const optabFileRef = useRef<HTMLInputElement>(null);  // Ref for optab file input
+
+  const handleFileRead = (file: File, setContent: React.Dispatch<React.SetStateAction<string>>) => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      if (e.target && typeof e.target.result === 'string') {
+        setContent(e.target.result);
+      }
+    };
+    reader.readAsText(file);
+  };
+
+  const handleInputFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0] || null;
+    setInputFile(file);
+    if (file) {
+      handleFileRead(file, setInputContent);
+    }
+  };
+
+  const handleOptabFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0] || null;
+    setOptabFile(file);
+    if (file) {
+      handleFileRead(file, setOptabContent);
+    }
+  };
+
+  const handleInputContentChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => setInputContent(e.target.value);
+  const handleOptabContentChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => setOptabContent(e.target.value);
+
+  const loadPresetOptab = () => {
+    const presetOptab = `ADD 18\nAND 40\nCOMP 28\nDIV 24\nJ 3C\nJEQ 30\nJGT 34\nJLT 38\nJSUB 48\nLDA 00\nLDCH 50\nLDL 08\nLDX 04\nMUL 20\nOR 44\nRD D8\nRSUB 4C\nSTA 0C\nSTCH 54\nSTL 14\nSTSW E8\nSTX 10\nSUB 1C\nTD E0\nTIX 2C\nWD DC`;
+    setOptabContent(presetOptab);
+    setOptabFile(null);
+  };
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+
+    if (!inputContent || !optabContent) {
+      setWarning('Both input.txt and optab.txt contents are required before submission.');
+      return;
+    }
+
     const formData = new FormData();
-    if (inputFile) formData.append('input_file', inputFile);
-    if (optabFile) formData.append('optab_file', optabFile);
+    formData.append('input_file', inputFile ? new File([inputContent], 'input.txt') : new Blob([inputContent], { type: 'text/plain' }), 'input.txt');
+    formData.append('optab_file', optabFile ? new File([optabContent], 'optab.txt') : new Blob([optabContent], { type: 'text/plain' }), 'optab.txt');
 
     try {
-      const res = await axios.post('https://youthful-dust-production.up.railway.app/', formData, {
-        headers: { 'Content-Type': 'multipart/form-data' }
+      const res = await axios.post('http://127.0.0.1:8000/process-files/', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
       });
-      setOutput(res.data.output_file || '');  // Ensure safe access
-      setRecord(res.data.record_file || '');  // Ensure safe access
+      setOutput(res.data.output_file || 'No output received.');
+      setRecord(res.data.record_file || 'No record received.');
       setError('');
+      setWarning('');
     } catch (error) {
-      console.error("Error processing files:", error);
       setError('Error processing files');
       setOutput('');
       setRecord('');
     }
   };
 
+  const handleClearForm = () => {
+    setInputFile(null);
+    setOptabFile(null);
+    setInputContent('');
+    setOptabContent('');
+    setOutput('');
+    setRecord('');
+    setError('');
+    setWarning('');
+
+    if (inputFileRef.current) {
+      inputFileRef.current.value = '';  // Reset input file input
+    }
+
+    if (optabFileRef.current) {
+      optabFileRef.current.value = '';  // Reset optab file input
+    }
+  };
+
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50">
-      <div className="w-full max-w-md bg-white p-6 rounded-lg shadow-lg">
-        <h1 className="text-2xl font-bold text-center text-gray-800 mb-6">File Processing App</h1>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700">Input File</label>
-            <input
-              type="file"
-              onChange={handleInputFileChange}
-              required
-              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700">Optab File</label>
-            <input
-              type="file"
-              onChange={handleOptabFileChange}
-              required
-              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
-            />
-          </div>
-          <button
-            type="submit"
-            className="w-full bg-indigo-600 text-white py-2 px-4 rounded-md shadow hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-          >
-            Submit
-          </button>
-        </form>
+    <>
+      <Head>
+        <title>Pass 1 Pass 2 Assembler</title>
+        <meta name="description" content="Upload and process input and optab files with ease" />
+        <link rel="icon" href="/favicon.ico" />
+      </Head>
 
-        {error && (
-          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mt-4" role="alert">
-            <strong className="font-bold">Error</strong>
-            <span className="block sm:inline">{error}</span>
-          </div>
-        )}
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-r from-[#1F2833] to-[#1F2833] via-emerald-400 py-8 px-4 lg:px-12">
+        <div className="flex flex-col lg:flex-row w-full border-2 border-[#45A29E] lg:max-w-5xl bg-[#1F2833] rounded-lg shadow-2xl shadow-[#66FCF1]">
+          <div className="lg:w-1/2 p-6">
+            <h1 className="text-2xl font-bold text-center text-[#66FCF1] mb-6">Pass 1 Pass 2 Assembler</h1>
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-[#C5C6C7]">Input File</label>
+                <input
+                  ref={inputFileRef} // Use ref here
+                  type="file"
+                  onChange={handleInputFileChange}
+                  className="mt-1 block w-full px-3 py-2 border-2 border-[#45A29E] rounded-md shadow-sm focus:outline-none focus:ring-[#66FCF1] focus:border-[#66FCF1]"
+                />
+                <textarea
+                  value={inputContent}
+                  onChange={handleInputContentChange}
+                  placeholder="Enter content for input.txt or edit uploaded file"
+                  className="mt-2 w-full h-32 p-2 border-2 border-[#45A29E] rounded-md shadow-sm text-[#C5C6C7] bg-[#1F2833] focus:outline-none"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-[#C5C6C7]">Optab File</label>
+                <input
+                  ref={optabFileRef} // Use ref here
+                  type="file"
+                  onChange={handleOptabFileChange}
+                  className="mt-1 block w-full px-3 py-2 border-2 border-[#45A29E] rounded-md shadow-sm focus:outline-none focus:ring-[#66FCF1] focus:border-[#66FCF1]"
+                />
+                <button
+                  type="button"
+                  onClick={loadPresetOptab}
+                  className="mt-2 w-full bg-[#66FCF1] text-[#0B0B10] py-1 px-2 rounded-md shadow hover:bg-[#45A29E] focus:outline-none"
+                >
+                  Load Preset Optab
+                </button>
+                <textarea
+                  value={optabContent}
+                  onChange={handleOptabContentChange}
+                  placeholder="Enter content for optab.txt or edit uploaded file"
+                  className="mt-2 w-full h-32 p-2 border-2 border-[#45A29E] rounded-md shadow-sm text-[#C5C6C7] bg-[#1F2833] focus:outline-none"
+                />
+              </div>
+              <button
+                type="submit"
+                className="w-full bg-[#66FCF1] text-[#0B0B10] py-2 px-4 rounded-md shadow hover:bg-[#45A29E] focus:outline-none focus:ring-2 focus:ring-[#66FCF1]"
+              >
+                Submit
+              </button>
+              <button
+                type="button"
+                onClick={handleClearForm}
+                className="w-full mt-2 bg-red-500 text-white py-2 px-4 rounded-md shadow hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500"
+              >
+                Clear
+              </button>
+            </form>
 
-        {output && <OutputComponent output={output} />}
-        {record && <RecordComponent record={record} />}
+            {error && (
+              <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mt-4" role="alert">
+                <strong className="font-bold">Error:</strong>
+                <span className="block sm:inline"> {error}</span>
+              </div>
+            )}
+          </div>
+
+          <div className="lg:w-1/2 p-6 flex flex-col space-y-4">
+            {warning && (
+              <div className="bg-[#1F2833] border-2 border-[#45A29E] text-yellow-200 px-4 py-3 rounded relative" role="alert">
+                <strong className="font-bold">Warning:</strong>
+                <span className="block sm:inline"> {warning}</span>
+              </div>
+            )}
+            {!output && !record && (
+              <div className="bg-[#1F2833] border-2 border-[#45A29E] rounded-lg p-4 text-[#C5C6C7] text-center py-72">
+                <p className="text-lg text-[#c5c6c7d7]">Upload files and submit the form to see the results here.</p>
+              </div>
+            )}
+            {output && <OutputComponent output={output} />}
+            {record && <RecordComponent record={record} />}
+          </div>
+        </div>
       </div>
-    </div>
+    </>
   );
 }
