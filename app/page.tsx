@@ -2,7 +2,7 @@
 import { useState, useRef } from "react";
 import axios from "axios";
 import Head from "next/head";
-import audiofile from "../public/audio/audio.mp3";
+
 interface OutputComponentProps {
   output: string;
   heading: string;
@@ -355,7 +355,8 @@ const Home = () => {
           </div>
         </div>
       </div>
-      <audio ref={audioRef} src={audiofile} preload="auto" />
+      <audio ref={audioRef} src="/audio/audio.mp3" preload="auto" />
+
 
       <footer className="w-full bg-[#161c24] text-center py-4">
         <p className="text-[#C5C6C7]">
