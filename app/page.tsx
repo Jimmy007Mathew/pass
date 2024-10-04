@@ -180,18 +180,6 @@ const Home = () => {
     setShowPass1(false);
   };
 
-  const audioRef = useRef<HTMLAudioElement>(null); // Ref for audio element
-
-  const playAudio = () => {
-    if (audioRef.current) {
-      console.log("Playing audio...");
-      audioRef.current.play(); // Play the audio
-      console.log("Audio playing...");
-    } else {
-      console.log("Audio element not found...");
-    }
-  };
-
   return (
     <>
       <Head>
@@ -202,7 +190,8 @@ const Home = () => {
         />
         <link rel="icon" href="/favicon.ico" />
       </Head>
-      <div className="min-h-screen flex items-center overflow-hidden justify-center bg-gradient-to-br from-[#266c69] to-[#266c69] via-[#161c24]  py-8 px-4 lg:px-12">
+
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#266c69] to-[#266c69] via-[#161c24] py-8 px-4 lg:px-12">
         <div className="flex flex-col lg:flex-row w-full border-2 border-[#45A29E] lg:max-w-5xl bg-[#161c24] rounded-lg shadow-2xl shadow-[#66FCF1]">
           <div className="lg:w-1/2 p-6">
             <h1 className="text-2xl font-bold text-center text-[#66FCF1] mb-6 underline">
@@ -216,15 +205,15 @@ const Home = () => {
                 <input
                   ref={inputFileRef}
                   type="file"
-                  id="inputFile"
+                  id="inputFile" 
                   onChange={handleInputFileChange}
                   className="hidden"
                 />
                 <label
-                  htmlFor="inputFile"
+                  htmlFor="inputFile" 
                   className="mt-1 block w-full bg-[#58cdc5] text-[#0B0B10] py-1 px-2 rounded-md shadow hover:bg-[#45A29E]  cursor-pointer text-center"
                 >
-                  Choose File
+                  Choose Input File
                 </label>
 
                 <textarea
@@ -242,13 +231,13 @@ const Home = () => {
                 <input
                   ref={optabFileRef}
                   type="file"
-                  id="optabFile"
+                  id="optabFile" 
                   onChange={handleOptabFileChange}
-                  className="hidden"
+                  className="hidden" 
                 />
                 <div className="mt-1 flex space-x-2">
                   <label
-                    htmlFor="optabFile"
+                    htmlFor="optabFile" 
                     className="w-full bg-[#58cdc5] text-[#0B0B10] py-1 px-2 rounded-md shadow hover:bg-[#45A29E] cursor-pointer text-center"
                   >
                     Choose Optab File
@@ -355,19 +344,10 @@ const Home = () => {
           </div>
         </div>
       </div>
-      /*<audio ref={audioRef} src="/audio/audio.mp3" preload="auto" />*/
-
-
       <footer className="w-full bg-[#161c24] text-center py-4">
         <p className="text-[#C5C6C7]">
           &copy; 2024 JIMMY MATHEW. All rights reserved.
         </p>
-        /*<button
-          onClick={playAudio}
-          className="mt-2 bg-[#58cdc5] text-[#0B0B10] py-1 px-4 rounded-md shadow hover:bg-[#45A29E] focus:outline-none"
-        >
-          Dont Press
-        </button>*/
       </footer>
     </>
   );
