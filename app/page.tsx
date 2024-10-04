@@ -180,7 +180,7 @@ const Home = () => {
     setShowPass1(false);
   };
 
-  const audioRef = useRef<HTMLAudioElement>(null); // Ref for audio element
+  /*const audioRef = useRef<HTMLAudioElement>(null); // Ref for audio element
 
   const playAudio = () => {
     if (audioRef.current) {
@@ -190,7 +190,7 @@ const Home = () => {
     } else {
       console.log("Audio element not found...");
     }
-  };
+  };*/
 
   return (
     <>
@@ -355,7 +355,7 @@ const Home = () => {
           </div>
         </div>
       </div>
-      <audio ref={audioRef} src="/audio/audio.mp3" preload="auto" />
+      /*<audio ref={audioRef} src="/audio/audio.mp3" preload="auto" />*/
 
 
       <footer className="w-full bg-[#161c24] text-center py-4">
