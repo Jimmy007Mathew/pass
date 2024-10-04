@@ -362,12 +362,12 @@ const Home = () => {
         <p className="text-[#C5C6C7]">
           &copy; 2024 JIMMY MATHEW. All rights reserved.
         </p>
-        <button
+        /*<button
           onClick={playAudio}
           className="mt-2 bg-[#58cdc5] text-[#0B0B10] py-1 px-4 rounded-md shadow hover:bg-[#45A29E] focus:outline-none"
         >
           Dont Press
-        </button>
+        </button>*/
       </footer>
     </>
   );
